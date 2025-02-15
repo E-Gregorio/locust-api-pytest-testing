@@ -5,13 +5,14 @@ import os
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
-def get_db_connection():
+def conectar():    # Esta es la función que populate_db.py está buscando
     try:
         connection = mysql.connector.connect(
             host=os.getenv('DB_HOST'),
             user=os.getenv('DB_USER'),
             password=os.getenv('DB_PASSWORD'),
-            database=os.getenv('DB_NAME')
+            database=os.getenv('DB_NAME'),
+            auth_plugin='mysql_native_password'
         )
         if connection.is_connected():
             print("Conexión exitosa a MySQL")
@@ -22,7 +23,7 @@ def get_db_connection():
 
 if __name__ == "__main__":
     print("Ejecutando script...")
-    connection = get_db_connection()
+    connection = conectar()
     if connection:
         print("Cerrando la conexión.")
         connection.close()
