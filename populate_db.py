@@ -1,11 +1,11 @@
 from faker import Faker
 import random
-from db_connection import conectar
+from db_connection import get_db_connection  # Cambiado de 'conectar' a 'get_db_connection'
 
 fake = Faker()
 
 def insertar_clientes(n):
-    conn = conectar()
+    conn = get_db_connection()  # Cambiado aquí también
     cursor = conn.cursor()
 
     for _ in range(n):
@@ -23,7 +23,7 @@ def insertar_clientes(n):
     print(f"Se insertaron {n} clientes.")
 
 def insertar_cuentas(n):
-    conn = conectar()
+    conn = get_db_connection()  # Cambiado aquí también
     cursor = conn.cursor()
 
     cursor.execute("SELECT id_cliente FROM clientes")
@@ -43,7 +43,7 @@ def insertar_cuentas(n):
     print(f"Se insertaron {n} cuentas.")
 
 def insertar_transacciones(n):
-    conn = conectar()
+    conn = get_db_connection()  # Cambiado aquí también
     cursor = conn.cursor()
 
     cursor.execute("SELECT id_cuenta FROM cuentas")
