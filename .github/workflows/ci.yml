@@ -1,0 +1,56 @@
+name: Python API Testing CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest locust flask mysql-connector-python python-dotenv faker
+
+    - name: Set up database
+      run: |
+        mysql -h 127.0.0.1 -P 3306 -u root -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} < schema.sql
+        python populate_db.py
+
+    - name: Run Flask API in background
+      run: |
+        python -m flask --app app/api run &
+        sleep 5
+
+    - name: Run tests
+      run: |
+        pytest tests/
+        locust -f tests/locustfile.py --headless -u 10 -r 2 --run-time 1m --host http://localhost:5000
+
+    env:
+      DB_HOST: localhost
+      DB_USER: root
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
